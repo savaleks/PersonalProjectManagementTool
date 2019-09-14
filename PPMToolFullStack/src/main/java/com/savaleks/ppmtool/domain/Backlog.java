@@ -1,9 +1,10 @@
 package com.savaleks.ppmtool.domain;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Backlog {
@@ -13,6 +14,30 @@ public class Backlog {
     private Long id;
     private Integer PTSequence = 0;
     private String projectIdentifier;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id", nullable = false)
+    @JsonIgnore
+    private Project project;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "backlog")
+    private List<ProjectTask> projectTasks = new ArrayList<>();
+
+    public List<ProjectTask> getProjectTasks() {
+        return projectTasks;
+    }
+
+    public void setProjectTasks(List<ProjectTask> projectTasks) {
+        this.projectTasks = projectTasks;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
 
     public Backlog(){}
 
