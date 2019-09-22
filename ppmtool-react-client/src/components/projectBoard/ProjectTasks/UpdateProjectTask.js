@@ -119,7 +119,7 @@ class UpdateProjectTask extends Component {
                     onChange={this.onChange}
                   />
                   {errors.summary && (
-                    <div classnames="invalid-feedback">{errors.summary}</div>
+                    <div className="invalid-feedback">{errors.summary}</div>
                   )}
                 </div>
                 <div className="form-group">
