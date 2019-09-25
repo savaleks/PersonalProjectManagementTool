@@ -1,12 +1,19 @@
 package com.savaleks.ppmtool.web;
 
 import com.savaleks.ppmtool.domain.User;
+import com.savaleks.ppmtool.payload.JwtLoginSuccessResponse;
+import com.savaleks.ppmtool.payload.LoginRequest;
+import com.savaleks.ppmtool.security.JwtTokenProvider;
 import com.savaleks.ppmtool.services.MapValidationErrorService;
 import com.savaleks.ppmtool.services.UserService;
 import com.savaleks.ppmtool.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+
+import static com.savaleks.ppmtool.security.SecurityConst.TOKEN_PREFIX;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,6 +37,29 @@ public class UserController {
 
     @Autowired
     private UserValidator userValidator;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, BindingResult result){
+        ResponseEntity<?> errorMap = mapValidationErrorService.MapValidationService(result);
+        if (errorMap != null){
+            return errorMap;
+        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = TOKEN_PREFIX + jwtTokenProvider.generateToken(authentication);
+        return ResponseEntity.ok(new JwtLoginSuccessResponse(true, jwt));
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?>registerUser(@Valid @RequestBody User user, BindingResult result){
